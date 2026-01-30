@@ -3,10 +3,10 @@
 Usage:
 
 ```bash
-    bash run.sh
+bash run.sh
 ```
 
-Output
+Output:
 
 ```text
 >Started. Please speak. Press ctrl + C  to exit
