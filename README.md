@@ -23,3 +23,10 @@ Output:
 2026/01/30 20:30:43.531033 Duration: 2.75 seconds
 2026/01/30 20:30:43.531044 ----------
 ```
+
+Raspberry Pi 2 W resource consumption (fresh OS installation)
+
+```txt
+    PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND                                                                                                      
+   1125 viet      20   0 1781092  36632  20108 S  14.2   8.6   3:02.66 vad                                                                                                          
+```

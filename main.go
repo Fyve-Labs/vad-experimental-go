@@ -60,14 +60,12 @@ func main() {
 	var selectedDeviceID malgo.DeviceID
 	var zeroDeviceID malgo.DeviceID
 
+	// Detect microphone on Linux - Raspberry Pi
 	if runtime.GOOS == "linux" {
 		fmt.Println("Capture Devices")
-		// Detect valid capture devices on Linux - Raspberry PI
 		infos, err := ctx.Devices(malgo.Capture)
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
+		chk(err)
+
 		for i, info := range infos {
 			// ignore HDMI input
 			if strings.Contains(info.Name(), "generate zero samples (capture)") {
@@ -83,8 +81,6 @@ func main() {
 			fmt.Printf("    %d: %v, %s, [%s]\n",
 				i, info.ID, info.Name(), e)
 		}
-
-		fmt.Println()
 	}
 
 	deviceConfig := malgo.DefaultDeviceConfig(malgo.Capture)
