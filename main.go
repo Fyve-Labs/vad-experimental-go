@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime"
+	"strings"
 
 	"github.com/gen2brain/malgo"
 	sherpa "github.com/k2-fsa/sherpa-onnx-go/sherpa_onnx"
@@ -55,18 +57,49 @@ func main() {
 		ctx.Free()
 	}()
 
-	deviceConfig := malgo.DefaultDeviceConfig(malgo.Duplex)
+	var selectedDeviceID malgo.DeviceID
+	var zeroDeviceID malgo.DeviceID
+
+	if runtime.GOOS == "linux" {
+		fmt.Println("Capture Devices")
+		// Detect valid capture devices on Linux - Raspberry PI
+		infos, err := ctx.Devices(malgo.Capture)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		for i, info := range infos {
+			// ignore HDMI input
+			if strings.Contains(info.Name(), "generate zero samples (capture)") {
+				continue
+			}
+			e := "ok"
+			_, err := ctx.DeviceInfo(malgo.Capture, info.ID, malgo.Shared)
+			if err != nil {
+				e = err.Error()
+			}
+
+			selectedDeviceID = info.ID
+			fmt.Printf("    %d: %v, %s, [%s]\n",
+				i, info.ID, info.Name(), e)
+		}
+
+		fmt.Println()
+	}
+
+	deviceConfig := malgo.DefaultDeviceConfig(malgo.Capture)
 	deviceConfig.Capture.Format = malgo.FormatS16
 	deviceConfig.Capture.Channels = 1
-	deviceConfig.Playback.Format = malgo.FormatS16
-	deviceConfig.Playback.Channels = 1
 	deviceConfig.SampleRate = 16000
 	deviceConfig.Alsa.NoMMap = 1
+	if selectedDeviceID != zeroDeviceID {
+		deviceConfig.Capture.DeviceID = selectedDeviceID.Pointer()
+	}
 
 	printed := false
 	k := 0
 
-	onRecvFrames := func(_, pSample []byte, framecount uint32) {
+	onRecvFrames := func(_, pSample []byte, frameCount uint32) {
 		samples := samplesInt16ToFloat(pSample)
 		buffer.Push(samples)
 		for buffer.Size() >= windowSize {
